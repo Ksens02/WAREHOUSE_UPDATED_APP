@@ -19,12 +19,15 @@ const userInfo = document.getElementById("user-info");
 const logoutBtn = document.getElementById("logout-btn");
 
 let currentUser = null;
+let authToken = null;
 
 // Check if user is already logged in
 function checkAuth() {
-  const stored = sessionStorage.getItem("currentUser");
-  if (stored) {
-    currentUser = JSON.parse(stored);
+  const storedUser = sessionStorage.getItem("currentUser");
+  const storedToken = sessionStorage.getItem("authToken");
+  if (storedUser && storedToken) {
+    currentUser = JSON.parse(storedUser);
+    authToken = storedToken;
     showDashboard();
   } else {
     showLoginScreen();
@@ -83,7 +86,9 @@ loginForm.addEventListener("submit", async (e) => {
 
     const data = await res.json();
     currentUser = { user_id: data.user_id, username: data.username };
+    authToken = data.access_token;
     sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+    sessionStorage.setItem("authToken", authToken);
     loginError.textContent = "";
     showDashboard();
   } catch (err) {
@@ -139,7 +144,9 @@ registerForm.addEventListener("submit", async (e) => {
 // Logout handler
 logoutBtn.addEventListener("click", () => {
   currentUser = null;
+  authToken = null;
   sessionStorage.removeItem("currentUser");
+  sessionStorage.removeItem("authToken");
   showLoginScreen();
 });
 
@@ -153,6 +160,32 @@ document.getElementById("go-login-link").addEventListener("click", (e) => {
   e.preventDefault();
   showLoginScreen();
 });
+
+// Helper function to make authenticated requests
+async function makeAuthenticatedRequest(url, options = {}) {
+  const headers = {
+    ...options.headers,
+    "Authorization": `Bearer ${authToken}`
+  };
+  
+  const res = await fetch(url, {
+    ...options,
+    headers
+  });
+  
+  // If 401, user is no longer authenticated
+  if (res.status === 401) {
+    currentUser = null;
+    authToken = null;
+    sessionStorage.removeItem("currentUser");
+    sessionStorage.removeItem("authToken");
+    showLoginScreen();
+    alert("Your session has expired. Please login again.");
+    throw new Error("Unauthorized");
+  }
+  
+  return res;
+}
 
 // ============================================
 // INVENTORY MANAGEMENT (Dashboard)
@@ -174,7 +207,7 @@ let editingId = null;
 
 async function fetchInventory() {
   try {
-    const res = await fetch("/inventory");
+    const res = await makeAuthenticatedRequest("/inventory");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     allItems = await res.json();
     statusEl.textContent = "connected";
@@ -308,13 +341,13 @@ itemForm.addEventListener("submit", async (e) => {
   try {
     let res;
     if (editingId != null) {
-      res = await fetch(`/update/${editingId}`, {
+      res = await makeAuthenticatedRequest(`/update/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
     } else {
-      res = await fetch("/inventory", {
+      res = await makeAuthenticatedRequest("/inventory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -334,7 +367,7 @@ itemForm.addEventListener("submit", async (e) => {
 async function deleteItem(id) {
   if (!confirm(`Delete item #${id}?`)) return;
   try {
-    const res = await fetch(`/inventory/${id}`, { method: "DELETE" });
+    const res = await makeAuthenticatedRequest(`/inventory/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     await fetchInventory();
     footerInfo.textContent = `Deleted item #${id}`;
