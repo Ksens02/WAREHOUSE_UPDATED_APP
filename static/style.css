@@ -33,6 +33,131 @@ body {
   flex-direction: column;
 }
 
+/* ============================================
+   AUTHENTICATION SCREENS
+   ============================================ */
+
+.auth-screen {
+  display: none;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.auth-screen.active {
+  display: flex;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+  text-align: center;
+}
+
+.auth-subtitle {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-form label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.auth-form input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+  border-color: var(--accent);
+}
+
+.auth-form input::placeholder {
+  color: var(--text-dim);
+}
+
+.error-message {
+  font-size: 12px;
+  color: var(--red);
+  min-height: 14px;
+  margin-top: -8px;
+}
+
+.auth-footer {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.auth-footer p {
+  color: var(--text-dim);
+}
+
+.auth-footer a {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.auth-footer a:hover {
+  color: var(--green);
+}
+
+/* ============================================
+   DASHBOARD SCREEN
+   ============================================ */
+
+.dashboard-screen {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+}
+
+.dashboard-screen.active {
+  display: flex;
+}
+
 header {
   background: var(--header-bg);
   border-bottom: 1px solid var(--border);
@@ -66,6 +191,17 @@ header h1 {
   color: var(--accent);
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
 .connection-status {
   font-size: 12px;
   color: var(--text-dim);
@@ -77,6 +213,22 @@ header h1 {
 
 .connection-status.error {
   color: var(--red);
+}
+
+.btn-logout {
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-logout:hover {
+  background: #e57b8f;
 }
 
 main {
@@ -96,6 +248,12 @@ main {
 }
 
 .toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-right {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -136,6 +294,10 @@ main {
   flex: 1;
   overflow: auto;
 }
+
+/* ============================================
+   TABLE STYLES
+   ============================================ */
 
 table {
   width: 100%;

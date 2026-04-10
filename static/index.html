@@ -7,100 +7,163 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header>
-    <div class="header-left">
-      <h1>warehouse_db</h1>
-      <span class="badge">SQLite</span>
-    </div>
-    <div class="header-right">
-      <span class="connection-status" id="status">connecting...</span>
-    </div>
-  </header>
-
-  <main>
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <span class="table-label">inventory</span>
-        <span class="row-count" id="row-count">&mdash; rows</span>
-      </div>
-      <div class="toolbar-right">
-        <button class="btn btn-add" id="btn-add">+ Add Item</button>
-        <input type="text" id="search" placeholder="Filter rows..." />
-      </div>
-    </div>
-
-    <div class="table-container">
-      <table id="inventory-table">
-        <thead>
-          <tr>
-            <th class="col-id">id</th>
-            <th>name</th>
-            <th>category</th>
-            <th>brand</th>
-            <th>size</th>
-            <th>color</th>
-            <th class="col-num">quantity</th>
-            <th class="col-num">price</th>
-            <th class="col-actions">actions</th>
-          </tr>
-        </thead>
-        <tbody id="inventory-body">
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal-overlay" id="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <span id="modal-title">Add Item</span>
-          <button class="modal-close" id="modal-close">&times;</button>
-        </div>
-        <form id="item-form">
+  <!-- Login Screen -->
+  <div id="login-screen" class="auth-screen active">
+    <div class="auth-container">
+      <div class="auth-card">
+        <h1 class="auth-title">Warehouse Dashboard</h1>
+        <p class="auth-subtitle">Login to manage inventory</p>
+        
+        <form id="login-form" class="auth-form">
           <div class="form-row">
-            <label for="f-name">Name</label>
-            <input type="text" id="f-name" required />
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" required autofocus />
           </div>
           <div class="form-row">
-            <label for="f-category">Category</label>
-            <input type="text" id="f-category" required />
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required />
           </div>
-          <div class="form-row">
-            <label for="f-brand">Brand</label>
-            <input type="text" id="f-brand" required />
-          </div>
-          <div class="form-grid">
-            <div class="form-row">
-              <label for="f-size">Size</label>
-              <input type="text" id="f-size" />
-            </div>
-            <div class="form-row">
-              <label for="f-color">Color</label>
-              <input type="text" id="f-color" />
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-row">
-              <label for="f-quantity">Quantity</label>
-              <input type="number" id="f-quantity" min="0" required />
-            </div>
-            <div class="form-row">
-              <label for="f-price">Price</label>
-              <input type="number" id="f-price" min="0" step="0.01" required />
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="button" class="btn btn-cancel" id="btn-cancel">Cancel</button>
-            <button type="submit" class="btn btn-save" id="btn-save">Save</button>
-          </div>
+          <div id="login-error" class="error-message"></div>
+          <button type="submit" class="btn btn-primary" id="login-btn">Login</button>
         </form>
+        
+        <div class="auth-footer">
+          <p>Don't have an account? <a href="#" id="go-register-link">Register here</a></p>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="footer-bar">
-      <span id="footer-info">Loading...</span>
+  <!-- Registration Screen -->
+  <div id="register-screen" class="auth-screen">
+    <div class="auth-container">
+      <div class="auth-card">
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Register for warehouse access</p>
+        
+        <form id="register-form" class="auth-form">
+          <div class="form-row">
+            <label for="register-username">Username</label>
+            <input type="text" id="register-username" required autofocus />
+          </div>
+          <div class="form-row">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required />
+          </div>
+          <div class="form-row">
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" required />
+          </div>
+          <div id="register-error" class="error-message"></div>
+          <button type="submit" class="btn btn-primary" id="register-btn">Register</button>
+        </form>
+        
+        <div class="auth-footer">
+          <p>Already have an account? <a href="#" id="go-login-link">Login here</a></p>
+        </div>
+      </div>
     </div>
-  </main>
+  </div>
+
+  <!-- Dashboard (Inventory) -->
+  <div id="dashboard" class="dashboard-screen">
+    <header>
+      <div class="header-left">
+        <h1>warehouse_db</h1>
+        <span class="badge">SQLite</span>
+      </div>
+      <div class="header-right">
+        <span id="user-info" class="user-info"></span>
+        <span class="connection-status" id="status">connecting...</span>
+        <button class="btn btn-logout" id="logout-btn">Logout</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="table-label">inventory</span>
+          <span class="row-count" id="row-count">&mdash; rows</span>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-add" id="btn-add">+ Add Item</button>
+          <input type="text" id="search" placeholder="Filter rows..." />
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="inventory-table">
+          <thead>
+            <tr>
+              <th class="col-id">id</th>
+              <th>name</th>
+              <th>category</th>
+              <th>brand</th>
+              <th>size</th>
+              <th>color</th>
+              <th class="col-num">quantity</th>
+              <th class="col-num">price</th>
+              <th class="col-actions">actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-body">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal -->
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <div class="modal-header">
+            <span id="modal-title">Add Item</span>
+            <button class="modal-close" id="modal-close">&times;</button>
+          </div>
+          <form id="item-form">
+            <div class="form-row">
+              <label for="f-name">Name</label>
+              <input type="text" id="f-name" required />
+            </div>
+            <div class="form-row">
+              <label for="f-category">Category</label>
+              <input type="text" id="f-category" required />
+            </div>
+            <div class="form-row">
+              <label for="f-brand">Brand</label>
+              <input type="text" id="f-brand" required />
+            </div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="f-size">Size</label>
+                <input type="text" id="f-size" />
+              </div>
+              <div class="form-row">
+                <label for="f-color">Color</label>
+                <input type="text" id="f-color" />
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="f-quantity">Quantity</label>
+                <input type="number" id="f-quantity" min="0" required />
+              </div>
+              <div class="form-row">
+                <label for="f-price">Price</label>
+                <input type="number" id="f-price" min="0" step="0.01" required />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-cancel" id="btn-cancel">Cancel</button>
+              <button type="submit" class="btn btn-save" id="btn-save">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bar">
+        <span id="footer-info">Loading...</span>
+      </div>
+    </main>
+  </div>
 
   <script src="/script.js"></script>
 </body>

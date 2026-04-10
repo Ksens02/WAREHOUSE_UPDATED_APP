@@ -1,3 +1,163 @@
+// ============================================
+// AUTHENTICATION MANAGEMENT
+// ============================================
+
+const loginScreen = document.getElementById("login-screen");
+const registerScreen = document.getElementById("register-screen");
+const dashboard = document.getElementById("dashboard");
+
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+const loginUsernameInput = document.getElementById("login-username");
+const loginPasswordInput = document.getElementById("login-password");
+const registerUsernameInput = document.getElementById("register-username");
+const registerPasswordInput = document.getElementById("register-password");
+const registerConfirmInput = document.getElementById("register-confirm");
+const loginError = document.getElementById("login-error");
+const registerError = document.getElementById("register-error");
+const userInfo = document.getElementById("user-info");
+const logoutBtn = document.getElementById("logout-btn");
+
+let currentUser = null;
+
+// Check if user is already logged in
+function checkAuth() {
+  const stored = sessionStorage.getItem("currentUser");
+  if (stored) {
+    currentUser = JSON.parse(stored);
+    showDashboard();
+  } else {
+    showLoginScreen();
+  }
+}
+
+function showLoginScreen() {
+  loginScreen.classList.add("active");
+  registerScreen.classList.remove("active");
+  dashboard.classList.remove("active");
+  loginForm.reset();
+  loginError.textContent = "";
+}
+
+function showRegisterScreen() {
+  loginScreen.classList.remove("active");
+  registerScreen.classList.add("active");
+  dashboard.classList.remove("active");
+  registerForm.reset();
+  registerError.textContent = "";
+}
+
+function showDashboard() {
+  loginScreen.classList.remove("active");
+  registerScreen.classList.remove("active");
+  dashboard.classList.add("active");
+  if (currentUser) {
+    userInfo.textContent = `Logged in as: ${currentUser.username}`;
+  }
+  fetchInventory();
+}
+
+// Login handler
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = loginUsernameInput.value.trim();
+  const password = loginPasswordInput.value;
+  
+  if (!username || !password) {
+    loginError.textContent = "Username and password required";
+    return;
+  }
+
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      loginError.textContent = data.detail || "Login failed";
+      return;
+    }
+
+    const data = await res.json();
+    currentUser = { user_id: data.user_id, username: data.username };
+    sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+    loginError.textContent = "";
+    showDashboard();
+  } catch (err) {
+    loginError.textContent = `Error: ${err.message}`;
+  }
+});
+
+// Register handler
+registerForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = registerUsernameInput.value.trim();
+  const password = registerPasswordInput.value;
+  const confirm = registerConfirmInput.value;
+
+  if (!username || !password) {
+    registerError.textContent = "Username and password required";
+    return;
+  }
+
+  if (password !== confirm) {
+    registerError.textContent = "Passwords do not match";
+    return;
+  }
+
+  if (password.length < 6) {
+    registerError.textContent = "Password must be at least 6 characters";
+    return;
+  }
+
+  try {
+    const res = await fetch("/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      registerError.textContent = data.detail || "Registration failed";
+      return;
+    }
+
+    registerError.textContent = "";
+    registerForm.reset();
+    // Show success and redirect to login
+    alert("Registration successful! Please login with your new account.");
+    showLoginScreen();
+  } catch (err) {
+    registerError.textContent = `Error: ${err.message}`;
+  }
+});
+
+// Logout handler
+logoutBtn.addEventListener("click", () => {
+  currentUser = null;
+  sessionStorage.removeItem("currentUser");
+  showLoginScreen();
+});
+
+// Navigation links
+document.getElementById("go-register-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  showRegisterScreen();
+});
+
+document.getElementById("go-login-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  showLoginScreen();
+});
+
+// ============================================
+// INVENTORY MANAGEMENT (Dashboard)
+// ============================================
+
 const statusEl = document.getElementById("status");
 const rowCountEl = document.getElementById("row-count");
 const tbody = document.getElementById("inventory-body");
@@ -10,9 +170,7 @@ const itemForm = document.getElementById("item-form");
 let allItems = [];
 let sortCol = null;
 let sortDir = "asc";
-let editingId = null; // null = creating, number = editing
-
-// --- Fetch & render ---
+let editingId = null;
 
 async function fetchInventory() {
   try {
@@ -95,8 +253,6 @@ function esc(str) {
   return d.innerHTML;
 }
 
-// --- Modal ---
-
 function openModal() {
   modalOverlay.classList.add("active");
 }
@@ -136,8 +292,6 @@ function openEdit(id) {
   document.getElementById("f-price").value = item.price;
   openModal();
 }
-
-// --- CRUD ---
 
 itemForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -189,10 +343,9 @@ async function deleteItem(id) {
   }
 }
 
-// --- Column sorting ---
 const columns = ["id", "name", "category", "brand", "size", "color", "quantity", "price"];
 document.querySelectorAll("th").forEach((th, i) => {
-  if (i >= columns.length) return; // skip actions column
+  if (i >= columns.length) return;
   th.addEventListener("click", () => {
     const col = columns[i];
     if (sortCol === col) {
@@ -209,4 +362,5 @@ document.querySelectorAll("th").forEach((th, i) => {
 
 searchInput.addEventListener("input", () => renderTable(allItems));
 
-fetchInventory();
+// Initialize: Check auth and show appropriate screen
+checkAuth();
